@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>Customer Profile</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
+        <meta content="Coderthemes" name="author" />
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="">
+
+         <!-- Datatables -->
+        <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+        <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js" defer></script>
+         
+        <!-- App css -->
+        <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/app-creative.min.css" rel="stylesheet" type="text/css" id="light-style" />
+        <link href="assets/css/app-creative-dark.min.css" rel="stylesheet" type="text/css" id="dark-style" />
+
+        <link href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
+        
+        <script type="text/javascript">
+            submitToAPI(event);
+            function submitToAPI(e) {
+             // e.preventDefault();
+              //var name = $("#apa").val();
+
+            var data = name;
+
+            $.ajax({
+              type: "GET",
+              url: "https://fkrus1rcs1.execute-api.eu-west-1.amazonaws.com/prod/profiles/"+location.hash.substring(1),
+              crossDomain: "true",
+              dataType: "json",
+              contentType: "application/json",
+              success: function(response) {
+              for(var i=0; i<response.length; i++) {
+                 $( ".customername" ).append( response[i].CustomerName.S );
+                 $( ".customerPhone" ).append( response[i].Phone.S );
+                 $( ".customerCountry" ).append( response[i].Country.S );
+                 $( ".customerGender" ).append( response[i].Gender.S );
+                 $( ".customerAddress" ).append( response[i].Address_1.S );
+                 $( ".customerState" ).append( response[i].State.S );
+               var customer_Id = response[i].CustomerID.S;
+               getCustomerProfiles(customer_Id);
+              }
+              
+              }
+            });
+            }
+             
+             function getCustomerProfiles(customer_Id)
+             {
+                let customerId = customer_Id;
+                console.log(customerId);
+                $.ajax({
+                  type: "GET",
+                  url: "https://fkrus1rcs1.execute-api.eu-west-1.amazonaws.com/prod/customers/list",
+                  crossDomain: "true",
+                  dataType: "json",
+                  contentType: "application/json",
+                  data: name,
+                  success: function(response) {
+                 
+                  for(var i=0; i<response.length; i++) {
+                    
+                    let custid = response[i].CustomerID;
+                    if( custid === customerId )
+                    {
+                        let match_ID = response[i].MatchID;
+                        getAllProfiles(match_ID);
+                    }  
+                  }
+                
+                }
+                });
+             }
+             getrecomenationwithoutclick();
+             function getrecomenationwithoutclick()
+                {
+                   let firstCustID = location.hash.substring(1); 
+                   console.log("first Recomendations");
+                  console.log(firstCustID);
+                   $.ajax({
+                  type: "GET",
+                  url: "https://fkrus1rcs1.execute-api.eu-west-1.amazonaws.com/prod/getrecommendations/"+firstCustID,
+                  crossDomain: "true",
+                  dataType: "json",
+                  contentType: "application/json",
+                  success: function(response) {
+                  var container = $("<table class='table table-hover table-centered mb-0'>");
+                  container.append("<thead><tr><th style='width:14%;'>ID</th><th style='width:32%;'>Product Name</th><th>Image</th><th>Price</th><th>Category</th><th>Propensity Score</th></tr></thead>");
+
+                  for(var i=0; i<response["body"].length; i++) {
+                    container.append("<tbody><tr>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].itemid +"</p></td>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].title.S +"</p></td>");
+                    container.append("<td><p id='weather'><img height='50' width='50' src='images/" + response["body"][i].image.S +"'> </p></td>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].price.S + "</b> </p></td>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].desc.S + "</b> </p></td>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].score + "</b> </p></td>");
+                    container.append("</tr></tbody>");
+                  
+                  }
+                  container.append("</table>");
+                  $("#recomendations").html(container)
+                  }
+                });
+                }
+
+            </script>
+            <script type="text/javascript">
+
+                var idForReco = "";
+            function getAllProfiles(match_ID)
+             {
+                let matchid = match_ID;
+                console.log(match_ID);
+                $.ajax({
+                  type: "GET",
+                  url: "https://fkrus1rcs1.execute-api.eu-west-1.amazonaws.com/prod/customers/"+matchid,
+                  crossDomain: "true",
+                  dataType: "json",
+                  contentType: "application/json",
+                  success: function(response) {
+                  
+                  for(var i=0; i<response.length; i++) {
+                    var idForReco = response[i].CustomerID.S;
+
+                       $( ".customerOtherProfiles" ).append(`<div class='inbox-item'><div class='inbox-item-img'><img src='assets/images/users/user.svg' class='rounded-circle' alt=""></div><p class='inbox-item-author fCap'>`+ response[i].CustomerName.S +`</p><p class='inbox-item-text fCap'>`+ response[i].Address.S +`</p> <p class='inbox-item-date'><img src='assets/images/right-arrow-black-triangle.svg' onclick="getrecomenationonclick('`+ response[i].CustomerID.S +`')"  style='width: 20px; cursor: pointer;'></p></div>`);
+                  }
+                  }
+                });
+               
+             }
+              
+              
+            </script>
+            <script type="text/javascript">
+                function getrecomenationonclick(value)
+                {
+                   let profCustID = value; 
+                   console.log("Second Recomendation");
+                  console.log(profCustID);
+                   $.ajax({
+                  type: "GET",
+                  url: "https://fkrus1rcs1.execute-api.eu-west-1.amazonaws.com/prod/getrecommendations/"+profCustID,
+                  crossDomain: "true",
+                  dataType: "json",
+                  contentType: "application/json",
+                  success: function(response) {
+                  var container = $("<table class='table table-hover table-centered mb-0'>");
+                  container.append("<thead><tr><th style='width:14%;'>ID</th><th style='width:32%;'>Product Name</th><th>Image</th><th>Price</th><th>Category</th><th>Propensity Score</th></tr></thead>");
+
+                  for(var i=0; i<response["body"].length; i++) {
+                    container.append("<tbody><tr>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].itemid +"</p></td>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].title.S +"</p></td>");
+                    container.append("<td><p id='weather'><img height='50' width='50' src='images/" + response["body"][i].image.S +"'> </p></td>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].price.S + "</b> </p></td>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].desc.S + "</b> </p></td>");
+                    container.append("<td><p id='weather'>"+ response["body"][i].score + "</b> </p></td>");
+                    container.append("</tr></tbody>");
+                  
+                  }
+                  container.append("</table>");
+                  $("#recomendations").html(container)
+                  }
+                });
+                }
+            </script>
+            
+
+
+    </head>
+
+    <body class="loading" data-layout="topnav" data-layout-config='{"layoutBoxed":false,"darkMode":false,"showRightSidebarOnStart": true}'>
+        <!-- Begin page -->
+        <div class="wrapper">
+
+            <!-- ============================================================== -->
+            <!-- Start Page Content here -->
+            <!-- ============================================================== -->
+
+            <div class="content-page">
+                <div class="content">
+                    <!-- Topbar Start -->
+                    <div class="navbar-custom topnav-navbar topnav-navbar-dark">
+                        <div class="container-fluid">
+
+                            <!-- LOGO -->
+                           
+                                <a href="index.html" class="btn btn-success btn-rounded getqueuebn">Back</a>
+                            
+
+                            <ul class="list-unstyled topbar-right-menu float-right mb-0">
+
+                                <li class="dropdown notification-list d-lg-none">
+                                    <a class="nav-link dropdown-toggle arrow-none" data-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                                        <i class="dripicons-search noti-icon"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-animated dropdown-lg p-0">
+                                        <form class="p-3">
+                                            <input type="text" class="form-control" placeholder="Search ..." aria-label="Recipient's username">
+                                        </form>
+                                    </div>
+                                </li>
+            
+                                <li class="dropdown notification-list topbar-dropdown d-none d-lg-block">
+                                    <a class="nav-link dropdown-toggle arrow-none" data-toggle="dropdown" id="topbar-languagedrop" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                                        <img src="assets/images/flags/us.jpg" alt="user-image" class="mr-1" height="12"> <span class="align-middle">English</span> <i class="mdi mdi-chevron-down align-middle"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-animated topbar-dropdown-menu" aria-labelledby="topbar-languagedrop">
+    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <img src="assets/images/flags/germany.jpg" alt="user-image" class="mr-1" height="12"> <span class="align-middle">German</span>
+                                        </a>
+    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <img src="assets/images/flags/italy.jpg" alt="user-image" class="mr-1" height="12"> <span class="align-middle">Italian</span>
+                                        </a>
+                    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <img src="assets/images/flags/spain.jpg" alt="user-image" class="mr-1" height="12"> <span class="align-middle">Spanish</span>
+                                        </a>
+    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <img src="assets/images/flags/russia.jpg" alt="user-image" class="mr-1" height="12"> <span class="align-middle">Russian</span>
+                                        </a>
+    
+                                    </div>
+                                </li>
+    
+                                <li class="dropdown notification-list">
+                                    <a class="nav-link dropdown-toggle arrow-none" data-toggle="dropdown" href="#" id="topbar-notifydrop" role="button" aria-haspopup="true" aria-expanded="false">
+                                        <i class="dripicons-bell noti-icon"></i>
+                                        <span class="noti-icon-badge"></span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-animated dropdown-lg" aria-labelledby="topbar-notifydrop">
+    
+                                        <!-- item-->
+                                        <div class="dropdown-item noti-title">
+                                            <h5 class="m-0">
+                                                <span class="float-right">
+                                                    <a href="javascript: void(0);" class="text-dark">
+                                                        <small>Clear All</small>
+                                                    </a>
+                                                </span>Notification
+                                            </h5>
+                                        </div>
+    
+                                        <div style="max-height: 230px;" data-simplebar>
+                                            <!-- item-->
+                                            <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                                <div class="notify-icon bg-primary">
+                                                    <i class="mdi mdi-comment-account-outline"></i>
+                                                </div>
+                                                <p class="notify-details">Caleb Flakelar commented on Admin
+                                                    <small class="text-muted">1 min ago</small>
+                                                </p>
+                                            </a>
+    
+                                            <!-- item-->
+                                            <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                                <div class="notify-icon bg-info">
+                                                    <i class="mdi mdi-account-plus"></i>
+                                                </div>
+                                                <p class="notify-details">New user registered.
+                                                    <small class="text-muted">5 hours ago</small>
+                                                </p>
+                                            </a>
+    
+                                            <!-- item-->
+                                            <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                                <div class="notify-icon">
+                                                    <img src="assets/images/users/avatar-2.jpg" class="img-fluid rounded-circle" alt="" /> </div>
+                                                <p class="notify-details">Cristina Pride</p>
+                                                <p class="text-muted mb-0 user-msg">
+                                                    <small>Hi, How are you? What about our next meeting</small>
+                                                </p>
+                                            </a>
+    
+                                            <!-- item-->
+                                            <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                                <div class="notify-icon bg-primary">
+                                                    <i class="mdi mdi-comment-account-outline"></i>
+                                                </div>
+                                                <p class="notify-details">Caleb Flakelar commented on Admin
+                                                    <small class="text-muted">4 days ago</small>
+                                                </p>
+                                            </a>
+    
+                                            <!-- item-->
+                                            <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                                <div class="notify-icon">
+                                                    <img src="assets/images/users/avatar-4.jpg" class="img-fluid rounded-circle" alt="" /> </div>
+                                                <p class="notify-details">Karen Robinson</p>
+                                                <p class="text-muted mb-0 user-msg">
+                                                    <small>Wow ! this admin looks good and awesome design</small>
+                                                </p>
+                                            </a>
+    
+                                            <!-- item-->
+                                            <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                                <div class="notify-icon bg-info">
+                                                    <i class="mdi mdi-heart"></i>
+                                                </div>
+                                                <p class="notify-details">Carlos Crouch liked
+                                                    <b>Admin</b>
+                                                    <small class="text-muted">13 days ago</small>
+                                                </p>
+                                            </a>
+                                        </div>
+    
+                                        <!-- All-->
+                                        <a href="javascript:void(0);" class="dropdown-item text-center text-primary notify-item notify-all">
+                                            View All
+                                        </a>
+    
+                                    </div>
+                                </li>
+
+                                <li class="dropdown notification-list d-none d-sm-inline-block">
+                                    <a class="nav-link dropdown-toggle arrow-none" data-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                                        <i class="dripicons-view-apps noti-icon"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-animated dropdown-lg p-0">
+    
+                                        <div class="p-2">
+                                            <div class="row no-gutters">
+                                                <div class="col">
+                                                    <a class="dropdown-icon-item" href="#">
+                                                        <img src="assets/images/brands/slack.png" alt="slack">
+                                                        <span>Slack</span>
+                                                    </a>
+                                                </div>
+                                                <div class="col">
+                                                    <a class="dropdown-icon-item" href="#">
+                                                        <img src="assets/images/brands/github.png" alt="Github">
+                                                        <span>GitHub</span>
+                                                    </a>
+                                                </div>
+                                                <div class="col">
+                                                    <a class="dropdown-icon-item" href="#">
+                                                        <img src="assets/images/brands/dribbble.png" alt="dribbble">
+                                                        <span>Dribbble</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+    
+                                            <div class="row no-gutters">
+                                                <div class="col">
+                                                    <a class="dropdown-icon-item" href="#">
+                                                        <img src="assets/images/brands/bitbucket.png" alt="bitbucket">
+                                                        <span>Bitbucket</span>
+                                                    </a>
+                                                </div>
+                                                <div class="col">
+                                                    <a class="dropdown-icon-item" href="#">
+                                                        <img src="assets/images/brands/dropbox.png" alt="dropbox">
+                                                        <span>Dropbox</span>
+                                                    </a>
+                                                </div>
+                                                <div class="col">
+                                                    <a class="dropdown-icon-item" href="#">
+                                                        <img src="assets/images/brands/g-suite.png" alt="G Suite">
+                                                        <span>G Suite</span>
+                                                    </a>
+                                                </div>
+                
+                                            </div>
+                                        </div>
+    
+                                    </div>
+                                </li>
+
+                                <li class="notification-list">
+                                    <a class="nav-link right-bar-toggle" href="javascript: void(0);">
+                                        <i class="dripicons-gear noti-icon"></i>
+                                    </a>
+                                </li>
+    
+                                <li class="dropdown notification-list">
+                                    <a class="nav-link dropdown-toggle nav-user arrow-none mr-0" data-toggle="dropdown" id="topbar-userdrop" href="#" role="button" aria-haspopup="true"
+                                        aria-expanded="false">
+                                        <span class="account-user-avatar"> 
+                                            <img src="assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
+                                        </span>
+                                        <span>
+                                            <span class="account-user-name">Dominic Keller</span>
+                                            <span class="account-position">Founder</span>
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-animated topbar-dropdown-menu profile-dropdown" aria-labelledby="topbar-userdrop">
+                                        <!-- item-->
+                                        <div class=" dropdown-header noti-title">
+                                            <h6 class="text-overflow m-0">Welcome !</h6>
+                                        </div>
+    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <i class="mdi mdi-account-circle mr-1"></i>
+                                            <span>My Account</span>
+                                        </a>
+    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <i class="mdi mdi-account-edit mr-1"></i>
+                                            <span>Settings</span>
+                                        </a>
+    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <i class="mdi mdi-lifebuoy mr-1"></i>
+                                            <span>Support</span>
+                                        </a>
+    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <i class="mdi mdi-lock-outline mr-1"></i>
+                                            <span>Lock Screen</span>
+                                        </a>
+    
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                                            <i class="mdi mdi-logout mr-1"></i>
+                                            <span>Logout</span>
+                                        </a>
+    
+                                    </div>
+                                </li>
+
+                            </ul>
+                            <a class="navbar-toggle"  data-toggle="collapse" data-target="#topnav-menu-content">
+                                <div class="lines">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </a>
+                           
+                        </div>
+                    </div>
+                    <!-- end Topbar -->
+
+                  
+  <!-- Start Content-->
+  <div class="container-fluid">
+
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-sm-12">
+            <!-- Profile -->
+            <div class="card">
+                <div class="card-body profile-user-box" style="background-color: #737FED;">
+
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div class="media">
+                                <span class="float-left m-2 mr-4"><img src="assets/images/users/user.svg" style="height: 100px; width: 100px;" alt="" class="rounded-circle img-thumbnail"></span>
+                                <div class="media-body">
+
+                                    <h4 class="my-1 color-white customername fCap"></h4>
+                                    <p class="font-13 light-grey"> Authorised Brand Seller</p>
+
+                                    <ul class="mb-0 list-inline">
+                                        <li class="list-inline-item mr-3">
+                                            <h5 class="mb-1 color-white">$ 25,184</h5>
+                                            <p class="mb-0 font-13 light-grey">Total Revenue</p>
+                                        </li>
+                                        <li class="list-inline-item">
+                                            <h5 class="mb-1 color-white">5482</h5>
+                                            <p class="mb-0 font-13 light-grey">Number of Orders</p>
+                                        </li>
+                                    </ul>
+                                </div> <!-- end media-body-->
+                            </div>
+                        </div> <!-- end col-->
+
+                      <!--
+                            <div class="col-sm-4">
+                            <div class="text-center mt-sm-0 mt-3 text-sm-right">
+                                <button type="button" class="btn btn-light">
+                                    <i class="mdi mdi-account-edit mr-1"></i> Edit Profile
+                                </button>
+                            </div>
+                        </div>
+                      --> <!-- end col-->
+                    </div> <!-- end row -->
+
+                </div> <!-- end card-body/ profile-user-box-->
+            </div><!--end profile/ card -->
+        </div> <!-- end col-->
+    </div>
+    <!-- end row -->
+
+
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Personal-Information -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-left">
+                        <p class="text-muted"><strong>Full Name :</strong> <span class="ml-2 customername fCap"></span></p>
+
+                        <p class="text-muted"><strong>Mobile :</strong><span class="ml-2 customerPhone"></span></p>
+
+                        <p class="text-muted"><strong>Gender :</strong> <span class="ml-2 customerGender fCap"></span></p>
+
+                        <p class="text-muted"><strong>Country :</strong> <span class="ml-2 customerCountry fCap"></span></p>
+
+                        <p class="text-muted"><strong>Address :</strong> <span class="ml-2 customerAddress fCap"></span></p>
+
+                        <p class="text-muted"><strong>State :</strong><span class="ml-2 customerState fCap"> </span></p>
+                        <p class="text-muted mb-0"><strong>Elsewhere :</strong>
+                            <a class="d-inline-block ml-2 text-muted" title="" data-placement="top" data-toggle="tooltip" href="" data-original-title="Facebook"><i class="mdi mdi-facebook"></i></a>
+                            <a class="d-inline-block ml-2 text-muted" title="" data-placement="top" data-toggle="tooltip" href="" data-original-title="Twitter"><i class="mdi mdi-twitter"></i></a>
+                            <a class="d-inline-block ml-2 text-muted" title="" data-placement="top" data-toggle="tooltip" href="" data-original-title="Skype"><i class="mdi mdi-skype"></i></a>
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+            <!-- Personal-Information -->
+
+            <!-- Messages-->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Other Profiles</h4>
+
+                    <div class="inbox-widget customerOtherProfiles">
+                      
+
+                    </div> <!-- end inbox-widget -->
+                </div> <!-- end card-body-->
+            </div> <!-- end card-->
+
+        </div> <!-- end col-->
+
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="card tilebox-one">
+                        <div class="card-body">
+                            <i class="dripicons-basket float-right text-muted"></i>
+                            <h6 class="text-muted text-uppercase mt-0">Orders</h6>
+                            <h2 class="m-b-20">1,587</h2>
+                         </div> <!-- end card-body-->
+                    </div> <!--end card-->
+                </div><!-- end col -->
+
+                <div class="col-sm-4">
+                    <div class="card tilebox-one">
+                        <div class="card-body">
+                            <i class="dripicons-box float-right text-muted"></i>
+                            <h6 class="text-muted text-uppercase mt-0">Revenue</h6>
+                            <h2 class="m-b-20">$<span>46,782</span></h2>
+                          </div> <!-- end card-body-->
+                    </div> <!--end card-->
+                </div><!-- end col -->
+
+                <div class="col-sm-4">
+                    <div class="card tilebox-one">
+                        <div class="card-body">
+                            <i class="dripicons-jewel float-right text-muted"></i>
+                            <h6 class="text-muted text-uppercase mt-0">Product Sold</h6>
+                            <h2 class="m-b-20">1,890</h2>
+                        </div> <!-- end card-body-->
+                    </div> <!--end card-->
+                </div><!-- end col -->
+
+            </div>
+            <!-- end row -->
+
+
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">Recomendation Products</h4>
+                    <div id="recomendations"></div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-centered mb-0 recomendationstbl">
+                            <!--
+                             <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Product Name</th>
+                                    <th>Image</th>
+                                    <th>Price</th>
+                                    <th>Category</th>
+                                    <th>Propensity Score</th>
+                                </tr>
+                            </thead>
+                            -->
+                           
+                        </table>
+                    </div> <!-- end table responsive-->
+                </div> <!-- end col-->
+            </div> <!-- end row-->
+
+        </div>
+        <!-- end col -->
+
+    </div>
+    <!-- end row -->
+
+</div>
+<!-- container -->
+
+                </div>
+                <!-- content -->
+
+                <!-- Footer Start -->
+               
+                <!-- end Footer -->
+
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- End Page content -->
+            <!-- ============================================================== -->
+
+
+        </div>
+        <!-- END wrapper -->
+
+        <!-- Right Sidebar -->
+        <div class="right-bar">
+
+          <div class="rightbar-title">
+            <a href="javascript:void(0);" class="right-bar-toggle float-right">
+              <i class="dripicons-cross noti-icon"></i>
+            </a>
+            <h5 class="m-0">Settings</h5>
+          </div>
+
+          <div class="rightbar-content h-100" data-simplebar>
+
+            <div class="p-3">
+              <div class="alert alert-warning" role="alert">
+                <strong>Customize </strong> the overall color scheme, layout width, etc.
+              </div>
+
+              <!-- Settings -->
+              <h5 class="mt-3">Color Scheme</h5>
+              <hr class="mt-1" />
+
+              <div class="custom-control custom-switch mb-1">
+                <input type="radio" class="custom-control-input" name="color-scheme-mode" value="light" id="light-mode-check"
+                  checked />
+                <label class="custom-control-label" for="light-mode-check">Light Mode</label>
+              </div>
+
+              <div class="custom-control custom-switch mb-1">
+                <input type="radio" class="custom-control-input" name="color-scheme-mode" value="dark" id="dark-mode-check" />
+                <label class="custom-control-label" for="dark-mode-check">Dark Mode</label>
+              </div>
+
+              <!-- Width -->
+              <h5 class="mt-4">Width</h5>
+              <hr class="mt-1"/>
+              <div class="custom-control custom-switch mb-1">
+                <input type="radio" class="custom-control-input" name="width" value="fluid" id="fluid-check" checked />
+                <label class="custom-control-label" for="fluid-check">Fluid</label>
+              </div>
+              <div class="custom-control custom-switch mb-1">
+                <input type="radio" class="custom-control-input" name="width" value="boxed" id="boxed-check" />
+                <label class="custom-control-label" for="boxed-check">Boxed</label>
+              </div>
+
+      
+
+              <button class="btn btn-primary btn-block mt-4" id="resetBtn">Reset to Default</button>
+
+              <a href="https://themes.getbootstrap.com/product/hyper-responsive-admin-dashboard-template/" class="btn btn-danger btn-block mt-3" target="_blank"><i class="mdi mdi-basket mr-1"></i> Purchase Now</a>
+            </div> <!-- end padding-->
+
+          </div>
+        </div>
+
+        <div class="rightbar-overlay"></div>
+        <!-- /Right-bar -->
+
+        <!-- bundle -->
+        <script src="assets/js/vendor.min.js"></script>
+        <script src="assets/js/app.min.js"></script>
+      
+
+    </body>
+</html>
